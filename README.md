@@ -15,6 +15,13 @@ Instead, a GitHub Actions workflow ([deploy.yml](.github/workflows/deploy.yml)) 
 | Padel 1, 2, 3 (`/produit/padel/`) | 23706 | 2258, 2259, 2260 |
 | Padel 4, 5, 6 (`/produit/padel-eclaire-en-soiree/`) | 59903 | 10064, 10065, 10066 |
 
+## Usage stats
+
+The page sends small anonymous events (page opened, day/filter picked, slot tapped) to a stats service at https://padel.saffist3r.xyz, which keeps them in SQLite. No cookies or IP addresses are stored; a visitor is a random id kept in the phone's localStorage. Nothing is sent when the page runs on localhost.
+
+- Dashboard: https://padel.saffist3r.xyz/stats (user `admin`, password stored in the `stats-auth` secret; `server/deploy.sh` prints the command to read it)
+- Code: [server/](server/) (FastAPI). Deploy or update with `./server/deploy.sh`: it builds the image inside minikube on the server, applies [server/k8s/padel-idl.yaml](server/k8s/padel-idl.yaml), and on first run gets a Let's Encrypt certificate the same way as the other saffist3r.xyz apps.
+
 ## Run locally
 
 No dependencies beyond Python 3.9+.

@@ -9,6 +9,7 @@
   };
 
   var GAME_HOURS = 2; // a game is 2 hours in a row on the same court
+  var STATS_URL = 'https://padel.saffist3r.xyz/api/events';
 
   var state = { day: null, period: loadSaved('period', PERIODS, 'all'), data: null };
   var daysEl = document.getElementById('days');
@@ -26,6 +27,31 @@
       if (saved && allowed[saved]) return saved;
     } catch (e) {}
     return fallback;
+  }
+
+  // Anonymous usage stats: a random id per phone, no cookies, nothing from local testing
+  function visitorId() {
+    try {
+      var id = localStorage.getItem('visitor');
+      if (!id) {
+        id = Math.random().toString(36).slice(2) + Date.now().toString(36);
+        localStorage.setItem('visitor', id);
+      }
+      return id;
+    } catch (e) {
+      return 'anonymous';
+    }
+  }
+
+  function track(type, props) {
+    if (location.hostname === 'localhost' || !navigator.sendBeacon) return;
+    var body = JSON.stringify({ type: type, visitor: visitorId(), props: props || {} });
+    // text/plain keeps it a simple request (no CORS preflight)
+    navigator.sendBeacon(STATS_URL, new Blob([body], { type: 'text/plain' }));
+  }
+
+  function weekdayOf(iso) {
+    return new Intl.DateTimeFormat('fr-FR', { weekday: 'long' }).format(new Date(iso + 'T12:00:00'));
   }
 
   function hhmm(hour) {
@@ -77,10 +103,11 @@
     }
     slotsEl.innerHTML = times.map(function (t) {
       var courts = byHour[t];
-      return '<section class="hour"><div class="hour-head"><span class="hour-time">' + t + 'h – ' + (t + GAME_HOURS) + 'h</span>' +
+      var label = t + 'h – ' + (t + GAME_HOURS) + 'h';
+      return '<section class="hour"><div class="hour-head"><span class="hour-time">' + label + '</span>' +
         '<span class="hour-count">' + courts.length + (courts.length > 1 ? ' terrains libres' : ' terrain libre') + '</span></div>' +
         '<div class="courts">' + courts.map(function (c) {
-          return '<a href="' + c.url + '" target="_blank" rel="noopener">' + c.name + '</a>';
+          return '<a href="' + c.url + '" target="_blank" rel="noopener" data-slot="' + label + '" data-court="' + c.name + '">' + c.name + '</a>';
         }).join('') + '</div></section>';
     }).join('');
   }
@@ -124,6 +151,7 @@
     var btn = e.target.closest('button[data-day]');
     if (!btn || btn.dataset.day === state.day) return;
     state.day = btn.dataset.day;
+    track('day', { weekday: weekdayOf(state.day) });
     renderDays();
     renderSlots();
   });
@@ -133,10 +161,16 @@
     if (!btn) return;
     state.period = btn.dataset.period;
     try { localStorage.setItem('period', state.period); } catch (err) {}
+    track('period', { period: state.period });
     this.querySelectorAll('button').forEach(function (b) {
       b.classList.toggle('active', b === btn);
     });
     if (state.data) renderSlots();
+  });
+
+  slotsEl.addEventListener('click', function (e) {
+    var link = e.target.closest('a[data-slot]');
+    if (link) track('slot_click', { slot: link.dataset.slot, court: link.dataset.court, weekday: weekdayOf(state.day) });
   });
 
   document.getElementById('refresh').addEventListener('click', load);
@@ -144,5 +178,6 @@
   document.querySelectorAll('#periods button').forEach(function (b) {
     b.classList.toggle('active', b.dataset.period === state.period);
   });
+  track('view');
   load();
 })();
