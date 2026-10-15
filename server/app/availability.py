@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Optional
 from zoneinfo import ZoneInfo
 
+from app import weather
 from app.club import BASE_URL, COURTS, fetch_court_slots
 
 DAYS_AHEAD = 14
@@ -38,7 +39,14 @@ def collect() -> Optional[dict]:
             return None
 
     with ThreadPoolExecutor(max_workers=PARALLEL_REQUESTS) as pool:
+        forecast = pool.submit(weather.fetch_hourly, DAYS_AHEAD)
         results = list(pool.map(fetch, jobs))
+    try:
+        hourly_weather = forecast.result()
+    except (OSError, ValueError, KeyError) as e:
+        # The page works without weather; it just doesn't show it
+        log.warning("Weather forecast failed: %s", e)
+        hourly_weather = {}
 
     if all(r is None for r in results):
         return None
@@ -54,6 +62,7 @@ def collect() -> Optional[dict]:
         "booking_base_url": BASE_URL + "/produit/",
         "courts": [{"id": c["id"], "name": c["name"], "product_slug": c["product_slug"]} for c in COURTS],
         "days": availability,
+        "weather": hourly_weather,
     }
 
 

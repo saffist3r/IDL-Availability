@@ -10,6 +10,8 @@ The club shop runs WordPress + WooCommerce Appointments. Free slots are public: 
 
 A small FastAPI app ([server/app](server/app)) runs on the saffist3r.xyz Kubernetes cluster. In the background it fetches the next 14 days for every court every 15 minutes (hourly at night), keeps the result in memory and on disk, and serves it as `/data.json` along with the page in [site/](site/). Slots can be up to ~15 minutes old; the club page shows the truth when you tap through.
 
+Each 2-hour row also shows the weather for those hours (courts are outdoor), from the free [Open-Meteo](https://open-meteo.com) hourly forecast for the park, fetched in the same refresh. The worst of the two hours is shown, and rows where rain is likely (≥ 50 % chance or ≥ 0.3 mm) are tinted blue.
+
 | Product | Product id | Courts (staff ids) |
 |---|---|---|
 | Padel 1, 2, 3 (`/produit/padel/`) | 23706 | 2258, 2259, 2260 |

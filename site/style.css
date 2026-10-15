@@ -8,6 +8,9 @@
   --accent-text: #ffffff;
   --chip: #e6f4f1;
   --chip-text: #0b5c55;
+  --rain-bg: #eef4fc;
+  --rain-border: #b9cff0;
+  --rain-text: #1f5fae;
   --radius: 12px;
 }
 
@@ -22,6 +25,9 @@
     --accent-text: #062b27;
     --chip: #1f3531;
     --chip-text: #7ee6d6;
+    --rain-bg: #152233;
+    --rain-border: #2c4a70;
+    --rain-text: #8fbcf2;
   }
 }
 
@@ -87,6 +93,10 @@ body {
 .hour-head { display: flex; justify-content: space-between; align-items: baseline; }
 .hour-time { font-size: 1.15rem; font-weight: 700; }
 .hour-count { color: var(--muted); font-size: 0.85rem; }
+.weather { margin-top: 4px; color: var(--muted); font-size: 0.85rem; }
+.weather .sky { font-size: 1rem; margin-right: 2px; }
+.weather.wet { color: var(--rain-text); font-weight: 600; }
+.hour.rainy { border-color: var(--rain-border); background: var(--rain-bg); }
 .courts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .courts a {
   background: var(--chip);

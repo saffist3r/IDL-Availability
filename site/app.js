@@ -54,6 +54,49 @@
     return new Intl.DateTimeFormat('fr-FR', { weekday: 'long' }).format(new Date(iso + 'T12:00:00'));
   }
 
+  // WMO weather codes (Open-Meteo) to an icon and a short French label
+  function sky(code, isDay) {
+    if (code === 0 || code === 1) return isDay ? ['☀️', 'Ensoleillé'] : ['🌙', 'Dégagé'];
+    if (code === 2) return isDay ? ['⛅', 'Éclaircies'] : ['☁️', 'Éclaircies'];
+    if (code === 3) return ['☁️', 'Couvert'];
+    if (code === 45 || code === 48) return ['🌫️', 'Brouillard'];
+    if (code >= 51 && code <= 57) return ['🌦️', 'Bruine'];
+    if ((code >= 61 && code <= 67) || (code >= 80 && code <= 82)) return ['🌧️', 'Pluie'];
+    if ((code >= 71 && code <= 77) || code === 85 || code === 86) return ['🌨️', 'Neige'];
+    if (code >= 95) return ['⛈️', 'Orage'];
+    return ['', ''];
+  }
+
+  // Weather over the hours of a game, keeping the worst hour so rain is never hidden
+  function weatherHtml(day, startHour) {
+    var dayWeather = (state.data.weather || {})[day];
+    if (!dayWeather) return '';
+    var hours = [];
+    for (var i = 0; i < GAME_HOURS; i++) {
+      if (dayWeather[startHour + i]) hours.push(dayWeather[startHour + i]);
+    }
+    if (!hours.length) return '';
+
+    var temp = 0, chance = null, rainMm = 0, code = 0, wind = 0, isDay = 0;
+    hours.forEach(function (h) {
+      temp += h[0] / hours.length;
+      if (h[1] !== null) chance = Math.max(chance === null ? 0 : chance, h[1]);
+      rainMm += h[2] || 0;
+      code = Math.max(code, h[3]);
+      wind = Math.max(wind, h[4]);
+      isDay = isDay || h[5];
+    });
+    var icon = sky(code, isDay);
+    var wet = rainMm >= 0.3 || (chance !== null && chance >= 50);
+
+    var parts = ['<span class="sky">' + icon[0] + '</span> ' + Math.round(temp) + '°'];
+    if (chance !== null) parts.push('pluie ' + chance + ' %');
+    else parts.push(icon[1]);
+    if (rainMm >= 0.1) parts.push(rainMm.toFixed(1).replace('.', ',') + ' mm');
+    if (wind >= 25) parts.push('vent ' + Math.round(wind) + ' km/h');
+    return '<div class="weather' + (wet ? ' wet' : '') + '">' + parts.join(' · ') + '</div>';
+  }
+
   function hhmm(hour) {
     return (hour < 10 ? '0' : '') + hour + '00';
   }
@@ -104,8 +147,10 @@
     slotsEl.innerHTML = times.map(function (t) {
       var courts = byHour[t];
       var label = t + 'h – ' + (t + GAME_HOURS) + 'h';
-      return '<section class="hour"><div class="hour-head"><span class="hour-time">' + label + '</span>' +
+      var weather = weatherHtml(state.day, t);
+      return '<section class="hour' + (weather.indexOf(' wet') !== -1 ? ' rainy' : '') + '"><div class="hour-head"><span class="hour-time">' + label + '</span>' +
         '<span class="hour-count">' + courts.length + (courts.length > 1 ? ' terrains libres' : ' terrain libre') + '</span></div>' +
+        weather +
         '<div class="courts">' + courts.map(function (c) {
           return '<a href="' + c.url + '" target="_blank" rel="noopener" data-slot="' + label + '" data-court="' + c.name + '">' + c.name + '</a>';
         }).join('') + '</div></section>';
