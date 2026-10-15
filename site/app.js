@@ -1,7 +1,6 @@
 (function () {
   'use strict';
 
-  var DAYS_SHOWN = 14;
   var PERIODS = {
     all: [0, 24],
     morning: [0, 12],
@@ -9,9 +8,10 @@
     evening: [17, 24],
   };
 
-  var state = { day: isoDate(new Date()), period: loadPeriod(), data: null };
+  var state = { day: null, period: loadPeriod(), data: null };
   var daysEl = document.getElementById('days');
   var slotsEl = document.getElementById('slots');
+  var updatedEl = document.getElementById('updated');
 
   function isoDate(d) {
     var local = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
@@ -26,29 +26,37 @@
     return 'all';
   }
 
+  function bookingUrl(court, day, hhmm) {
+    return state.data.booking_base_url + court.product_slug + '/?date=' + day + '&time=' + hhmm;
+  }
+
   function renderDays() {
     var fmtDow = new Intl.DateTimeFormat('fr-FR', { weekday: 'short' });
-    var html = '';
-    for (var i = 0; i < DAYS_SHOWN; i++) {
-      var d = new Date();
-      d.setDate(d.getDate() + i);
-      var iso = isoDate(d);
-      var label = i === 0 ? 'auj.' : fmtDow.format(d).replace('.', '');
-      html += '<button type="button" data-day="' + iso + '"' + (iso === state.day ? ' class="active"' : '') + '>' +
+    var today = isoDate(new Date());
+    daysEl.innerHTML = Object.keys(state.data.days).filter(function (iso) {
+      return iso >= today;
+    }).map(function (iso) {
+      var d = new Date(iso + 'T12:00:00');
+      var label = iso === today ? 'auj.' : fmtDow.format(d).replace('.', '');
+      return '<button type="button" data-day="' + iso + '"' + (iso === state.day ? ' class="active"' : '') + '>' +
         '<span class="dow">' + label + '</span><span class="num">' + d.getDate() + '</span></button>';
-    }
-    daysEl.innerHTML = html;
+    }).join('');
   }
 
   function renderSlots() {
-    if (!state.data) return;
     var range = PERIODS[state.period];
+    var dayData = state.data.days[state.day] || {};
+    var now = new Date();
+    var isToday = state.day === isoDate(now);
     var byHour = {};
+
     state.data.courts.forEach(function (court) {
-      court.slots.forEach(function (slot) {
-        var hour = parseInt(slot.time, 10);
+      (dayData[court.id] || []).forEach(function (hhmm) {
+        var hour = parseInt(hhmm.slice(0, 2), 10);
         if (hour < range[0] || hour >= range[1]) return;
-        (byHour[slot.time] = byHour[slot.time] || []).push({ name: court.name, url: slot.booking_url });
+        if (isToday && hour <= now.getHours()) return; // already started
+        var label = hhmm.slice(0, 2) + ':' + hhmm.slice(2);
+        (byHour[label] = byHour[label] || []).push({ name: court.name, url: bookingUrl(court, state.day, hhmm) });
       });
     });
 
@@ -67,23 +75,38 @@
     }).join('');
   }
 
+  function renderUpdated() {
+    var minutes = Math.round((Date.now() - new Date(state.data.generated_at).getTime()) / 60000);
+    updatedEl.textContent = minutes < 1 ? 'Mis à jour à l’instant' :
+      minutes < 60 ? 'Mis à jour il y a ' + minutes + ' min' :
+      'Mis à jour il y a ' + Math.floor(minutes / 60) + ' h';
+  }
+
+  function render() {
+    var days = Object.keys(state.data.days);
+    var today = isoDate(new Date());
+    if (!state.day || !state.data.days[state.day]) {
+      state.day = days.filter(function (d) { return d >= today; })[0] || days[0];
+    }
+    renderDays();
+    renderSlots();
+    renderUpdated();
+  }
+
   function load() {
-    var day = state.day;
-    state.data = null;
     slotsEl.innerHTML = '<p class="message">Chargement…</p>';
-    fetch('/api/availability?date=' + day)
+    // Bypass the browser cache: the file is rebuilt every few minutes
+    fetch('data.json?t=' + Date.now())
       .then(function (res) {
         if (!res.ok) throw new Error(res.status);
         return res.json();
       })
       .then(function (data) {
-        if (day !== state.day) return; // a newer day was picked meanwhile
         state.data = data;
-        renderSlots();
+        render();
       })
       .catch(function () {
-        if (day !== state.day) return;
-        slotsEl.innerHTML = '<p class="message">Impossible de joindre le site du club. Réessayez.</p>';
+        slotsEl.innerHTML = '<p class="message">Impossible de charger les créneaux. Réessayez.</p>';
       });
   }
 
@@ -92,7 +115,7 @@
     if (!btn || btn.dataset.day === state.day) return;
     state.day = btn.dataset.day;
     renderDays();
-    load();
+    renderSlots();
   });
 
   document.getElementById('periods').addEventListener('click', function (e) {
@@ -103,7 +126,7 @@
     this.querySelectorAll('button').forEach(function (b) {
       b.classList.toggle('active', b === btn);
     });
-    renderSlots();
+    if (state.data) renderSlots();
   });
 
   document.getElementById('refresh').addEventListener('click', load);
@@ -111,6 +134,5 @@
   document.querySelectorAll('#periods button').forEach(function (b) {
     b.classList.toggle('active', b.dataset.period === state.period);
   });
-  renderDays();
   load();
 })();

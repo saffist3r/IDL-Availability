@@ -3,8 +3,8 @@
   "configurations": [
     {
       "name": "padel",
-      "runtimeExecutable": ".venv/bin/uvicorn",
-      "runtimeArgs": ["app.main:app", "--port", "8010", "--reload"],
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "-d", "_site", "8010"],
       "port": 8010
     }
   ]

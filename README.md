@@ -1,8 +1,14 @@
-# Réservation Padel IDL
+# IDL Availability
 
 A phone-friendly page showing free padel slots on the 6 courts of the Île de Loisirs de Cergy-Pontoise, for sharing with friends. Tapping a court opens the club's booking page with that day and hour preselected.
 
-The club shop runs WordPress + WooCommerce Appointments. Free slots are public: `admin-ajax.php` with `action=wc_appointments_get_slots` returns the slots for one court on one day. Results are cached for 60 seconds.
+Live at https://saffist3r.github.io/IDL-Availability/
+
+## How it works
+
+The club shop runs WordPress + WooCommerce Appointments. Free slots are public: `admin-ajax.php` with `action=wc_appointments_get_slots` returns the slots for one court on one day. The club site does not allow browsers on other sites to call it, so the page cannot ask it directly.
+
+Instead, a GitHub Actions workflow ([deploy.yml](.github/workflows/deploy.yml)) runs every 15 minutes from about 06:00 to midnight. It fetches the next 14 days for every court, writes `data.json` and publishes the site to GitHub Pages. Slots can therefore be up to ~15–20 minutes old; the club page shows the truth when you tap through.
 
 | Product | Product id | Courts (staff ids) |
 |---|---|---|
@@ -11,18 +17,15 @@ The club shop runs WordPress + WooCommerce Appointments. Free slots are public: 
 
 ## Run locally
 
+No dependencies beyond Python 3.9+.
+
 ```bash
-python3 -m venv .venv
-.venv/bin/pip install -r requirements.txt
-.venv/bin/uvicorn app.main:app --port 8010 --reload
+python3 scripts/build_site.py
+python3 -m http.server -d _site 8010
 ```
 
 Open http://localhost:8010.
 
-## API
-
-`GET /api/availability?date=YYYY-MM-DD` returns each court with its free slots and a booking link. Dates must be within the next 60 days.
-
 ## Next: one-tap booking
 
-When logged in, the product form also takes `addon-inviter-des-joueurs-<pid>-1[]` and `addon-email-du-joueur-{1,2,3}-<pid>-{2,3,4}`. Inviting subscribed players makes the booking free. The checkout step after add-to-cart has not been captured yet.
+When logged in, the product form also takes `addon-inviter-des-joueurs-<pid>-1[]` and `addon-email-du-joueur-{1,2,3}-<pid>-{2,3,4}`. Inviting subscribed players makes the booking free. The checkout step after add-to-cart has not been captured yet. Booking needs the booker's club login, so it will need a small server rather than GitHub Pages.
