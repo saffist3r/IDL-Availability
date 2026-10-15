@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0f766e">
+  <title>Padel IDL – Créneaux libres</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header class="top">
+    <h1>Padel Île de Loisirs</h1>
+    <p class="subtitle">Créneaux libres sur les 6 terrains</p>
+  </header>
+
+  <nav class="days" id="days" aria-label="Choisir un jour"></nav>
+
+  <div class="periods" id="periods" role="group" aria-label="Moment de la journée">
+    <button data-period="all" class="active">Tout</button>
+    <button data-period="morning">Matin</button>
+    <button data-period="afternoon">Après-midi</button>
+    <button data-period="evening">Soir</button>
+  </div>
+
+  <main id="slots" aria-live="polite"></main>
+
+  <footer class="foot">
+    Touchez un terrain pour ouvrir la page de réservation du club.
+    <button id="refresh" type="button">Actualiser</button>
+  </footer>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

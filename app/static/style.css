@@ -1,0 +1,112 @@
+:root {
+  --bg: #f4f6f5;
+  --card: #ffffff;
+  --text: #14211f;
+  --muted: #5d6b68;
+  --border: #dde3e1;
+  --accent: #0f766e;
+  --accent-text: #ffffff;
+  --chip: #e6f4f1;
+  --chip-text: #0b5c55;
+  --radius: 12px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0e1513;
+    --card: #17211f;
+    --text: #e8efed;
+    --muted: #9aaaa6;
+    --border: #2a3835;
+    --accent: #2dd4bf;
+    --accent-text: #062b27;
+    --chip: #1f3531;
+    --chip-text: #7ee6d6;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  padding: 0 16px calc(24px + env(safe-area-inset-bottom));
+  max-width: 640px;
+  margin-inline: auto;
+}
+
+.top { padding: 20px 0 8px; }
+.top h1 { margin: 0; font-size: 1.4rem; }
+.subtitle { margin: 4px 0 0; color: var(--muted); font-size: 0.9rem; }
+
+.days {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 12px 0;
+  scrollbar-width: none;
+}
+.days::-webkit-scrollbar { display: none; }
+
+.days button,
+.periods button {
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+  border-radius: var(--radius);
+  font: inherit;
+  cursor: pointer;
+}
+
+.days button {
+  flex: 0 0 auto;
+  min-width: 58px;
+  padding: 8px 6px;
+  text-align: center;
+  line-height: 1.2;
+}
+.days .dow { display: block; font-size: 0.75rem; color: var(--muted); text-transform: capitalize; }
+.days .num { display: block; font-size: 1.15rem; font-weight: 600; }
+.days button.active { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
+.days button.active .dow { color: inherit; }
+
+.periods { display: flex; gap: 6px; margin-bottom: 12px; }
+.periods button { flex: 1; padding: 8px 4px; font-size: 0.85rem; }
+.periods button.active { background: var(--chip); border-color: var(--accent); color: var(--chip-text); font-weight: 600; }
+
+.hour {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  margin-bottom: 8px;
+}
+.hour-head { display: flex; justify-content: space-between; align-items: baseline; }
+.hour-time { font-size: 1.15rem; font-weight: 700; }
+.hour-count { color: var(--muted); font-size: 0.85rem; }
+.courts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.courts a {
+  background: var(--chip);
+  color: var(--chip-text);
+  text-decoration: none;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.message { text-align: center; color: var(--muted); padding: 32px 0; }
+
+.foot { margin-top: 16px; color: var(--muted); font-size: 0.8rem; text-align: center; }
+.foot button {
+  display: block;
+  margin: 10px auto 0;
+  padding: 8px 16px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+  font: inherit;
+}
