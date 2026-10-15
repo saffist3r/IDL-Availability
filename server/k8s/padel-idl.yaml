@@ -1,0 +1,102 @@
+# Stats service for the padel availability page, served at padel.saffist3r.xyz.
+# The TLS secret comes from certbot on the host (see deploy.sh); the
+# stats-auth secret is created once by deploy.sh with a random password.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: padel-idl
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: padel-idl-data
+  namespace: padel-idl
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: padel-idl
+  namespace: padel-idl
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate # SQLite file on a single volume
+  selector:
+    matchLabels:
+      app: padel-idl
+  template:
+    metadata:
+      labels:
+        app: padel-idl
+    spec:
+      containers:
+        - name: padel-idl
+          image: padel-idl:IMAGE_TAG
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          env:
+            - name: STATS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: stats-auth
+                  key: password
+          volumeMounts:
+            - name: data
+              mountPath: /data
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 8000
+          resources:
+            requests:
+              cpu: 20m
+              memory: 64Mi
+            limits:
+              memory: 256Mi
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: padel-idl-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: padel-idl
+  namespace: padel-idl
+spec:
+  selector:
+    app: padel-idl
+  ports:
+    - port: 8000
+      targetPort: 8000
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: padel-idl
+  namespace: padel-idl
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts: [padel.saffist3r.xyz]
+      secretName: padel-idl-tls
+  rules:
+    - host: padel.saffist3r.xyz
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: padel-idl
+                port:
+                  number: 8000
