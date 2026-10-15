@@ -15,12 +15,12 @@ USER_AGENT = "Mozilla/5.0 (IDL-Availability padel viewer)"
 
 # Two shop products, three courts each. Court ids are the plugin's "staff" ids.
 COURTS = [
-    {"id": 2258, "name": "Court 1", "product_id": 23706, "product_slug": "padel"},
-    {"id": 2259, "name": "Court 2", "product_id": 23706, "product_slug": "padel"},
-    {"id": 2260, "name": "Court 3", "product_id": 23706, "product_slug": "padel"},
-    {"id": 10064, "name": "Court 4", "product_id": 59903, "product_slug": "padel-eclaire-en-soiree"},
-    {"id": 10065, "name": "Court 5", "product_id": 59903, "product_slug": "padel-eclaire-en-soiree"},
-    {"id": 10066, "name": "Court 6", "product_id": 59903, "product_slug": "padel-eclaire-en-soiree"},
+    {"id": 2258, "name": "Terrain 1", "product_id": 23706, "product_slug": "padel"},
+    {"id": 2259, "name": "Terrain 2", "product_id": 23706, "product_slug": "padel"},
+    {"id": 2260, "name": "Terrain 3", "product_id": 23706, "product_slug": "padel"},
+    {"id": 10064, "name": "Terrain 4", "product_id": 59903, "product_slug": "padel-eclaire-en-soiree"},
+    {"id": 10065, "name": "Terrain 5", "product_id": 59903, "product_slug": "padel-eclaire-en-soiree"},
+    {"id": 10066, "name": "Terrain 6", "product_id": 59903, "product_slug": "padel-eclaire-en-soiree"},
 ]
 
 _SLOT_RE = re.compile(r'<li class="slot[^"]*" data-slot="(\d{4})" data-remaining="(\d+)"')

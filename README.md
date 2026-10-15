@@ -1,6 +1,6 @@
 # IDL Availability
 
-A phone-friendly page showing free padel slots on the 6 courts of the Île de Loisirs de Cergy-Pontoise, for sharing with friends. Tapping a court opens the club's booking page with that day and hour preselected.
+A phone-friendly page (in French) showing free 2-hour padel slots — two consecutive free hours on the same court — on the 6 courts of the Île de Loisirs de Cergy-Pontoise, for sharing with friends. Tapping a court opens the club's booking page with that day and hour preselected.
 
 Live at https://saffist3r.github.io/IDL-Availability/
 

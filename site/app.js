@@ -8,7 +8,9 @@
     evening: [17, 24],
   };
 
-  var state = { day: null, period: loadSaved('period', PERIODS, 'all'), duration: Number(loadSaved('duration', { 1: 1, 2: 1 }, '2')), data: null };
+  var GAME_HOURS = 2; // a game is 2 hours in a row on the same court
+
+  var state = { day: null, period: loadSaved('period', PERIODS, 'all'), data: null };
   var daysEl = document.getElementById('days');
   var slotsEl = document.getElementById('slots');
   var updatedEl = document.getElementById('updated');
@@ -61,17 +63,17 @@
         if (hour < range[0] || hour >= range[1]) return;
         if (isToday && hour <= now.getHours()) return; // already started
         // Every following hour must be free on the same court too
-        for (var i = 1; i < state.duration; i++) {
+        for (var i = 1; i < GAME_HOURS; i++) {
           if (free.indexOf(hhmmLabel(hour + i).replace(':', '')) === -1) return;
         }
-        var label = state.duration > 1 ? hhmmLabel(hour) + ' – ' + hhmmLabel(hour + state.duration) : hhmmLabel(hour);
+        var label = hhmmLabel(hour) + ' – ' + hhmmLabel(hour + GAME_HOURS);
         (byHour[label] = byHour[label] || []).push({ name: court.name, url: bookingUrl(court, state.day, hhmm) });
       });
     });
 
     var times = Object.keys(byHour).sort();
     if (!times.length) {
-      slotsEl.innerHTML = '<p class="message">Aucun créneau libre sur cette période.</p>';
+      slotsEl.innerHTML = '<p class="message">Aucun créneau de 2 h libre sur cette période.</p>';
       return;
     }
     slotsEl.innerHTML = times.map(function (t) {
@@ -138,24 +140,10 @@
     if (state.data) renderSlots();
   });
 
-  document.getElementById('durations').addEventListener('click', function (e) {
-    var btn = e.target.closest('button[data-duration]');
-    if (!btn) return;
-    state.duration = Number(btn.dataset.duration);
-    try { localStorage.setItem('duration', btn.dataset.duration); } catch (err) {}
-    this.querySelectorAll('button').forEach(function (b) {
-      b.classList.toggle('active', b === btn);
-    });
-    if (state.data) renderSlots();
-  });
-
   document.getElementById('refresh').addEventListener('click', load);
 
   document.querySelectorAll('#periods button').forEach(function (b) {
     b.classList.toggle('active', b.dataset.period === state.period);
-  });
-  document.querySelectorAll('#durations button').forEach(function (b) {
-    b.classList.toggle('active', Number(b.dataset.duration) === state.duration);
   });
   load();
 })();

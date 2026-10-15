@@ -51,8 +51,7 @@ body {
 .days::-webkit-scrollbar { display: none; }
 
 .days button,
-.periods button,
-.durations button {
+.periods button {
   border: 1px solid var(--border);
   background: var(--card);
   color: var(--text);
@@ -73,18 +72,10 @@ body {
 .days button.active { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
 .days button.active .dow { color: inherit; }
 
-.periods, .durations { display: flex; gap: 6px; margin-bottom: 12px; }
-.periods button, .durations button { flex: 1; padding: 8px 4px; font-size: 0.85rem; }
-.periods button.active, .durations button.active { background: var(--chip); border-color: var(--accent); color: var(--chip-text); font-weight: 600; }
+.periods { display: flex; gap: 6px; margin-bottom: 12px; }
+.periods button { flex: 1; padding: 8px 4px; font-size: 0.85rem; }
+.periods button.active { background: var(--chip); border-color: var(--accent); color: var(--chip-text); font-weight: 600; }
 
-.durations {
-  padding: 3px;
-  gap: 3px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--card);
-}
-.durations button { border-color: transparent; background: transparent; border-radius: 9px; }
 
 .hour {
   background: var(--card);
