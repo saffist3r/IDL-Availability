@@ -198,18 +198,22 @@ def stats(days: Optional[int] = 30):
     return f"""<!doctype html><html lang="fr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Stats Padel IDL</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap">
 <style>
-:root {{ --bg:#f4f6f5; --card:#fff; --text:#14211f; --muted:#5d6b68; --border:#dde3e1; --accent:#0f766e; }}
-@media (prefers-color-scheme: dark) {{ :root {{ --bg:#0e1513; --card:#17211f; --text:#e8efed; --muted:#9aaaa6; --border:#2a3835; --accent:#2dd4bf; }} }}
+:root {{ --bg:#f4f5ef; --card:#fff; --text:#0f1a33; --muted:#66718a; --border:#e4e7ee; --accent:#1f4fd1; --deep:#173a9e; --ball:#d6f24a; --on-ball:#1a2508; }}
+@media (prefers-color-scheme: dark) {{ :root {{ --bg:#090f1d; --card:#111a2e; --text:#e9eefb; --muted:#94a0bd; --border:#1e2a44; --accent:#4a76ff; --deep:#12276a; }} }}
 * {{ box-sizing:border-box; }}
 body {{ margin:0 auto; max-width:760px; padding:20px 16px 40px; background:var(--bg); color:var(--text);
-       font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; }}
-h1 {{ font-size:1.4rem; margin:0 0 4px; }} h2 {{ font-size:1rem; margin:0 0 8px; }}
+       font-family:"Plus Jakarta Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; -webkit-font-smoothing:antialiased; }}
+h1 {{ font-size:1.45rem; font-weight:800; letter-spacing:-0.02em; margin:0 0 6px; display:flex; align-items:center; gap:10px; }}
+h1::before {{ content:""; width:18px; height:18px; border-radius:50%; background:var(--ball); box-shadow:inset -3px -3px 0 rgba(0,0,0,.12); }} h2 {{ font-size:1rem; margin:0 0 8px; }}
 .range {{ color:var(--muted); font-size:.9rem; margin-bottom:16px; }}
 .range a {{ color:var(--muted); }} .range a.on {{ color:var(--accent); font-weight:700; text-decoration:none; }}
 .kpis {{ display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:8px; margin-bottom:16px; }}
 .kpi, section {{ background:var(--card); border:1px solid var(--border); border-radius:12px; padding:12px 14px; }}
-.kpi b {{ display:block; font-size:1.6rem; }} .kpi span {{ color:var(--muted); font-size:.85rem; }}
+.kpi:first-child {{ background:linear-gradient(135deg,var(--accent),var(--deep)); border-color:transparent; color:#fff; }}
+.kpi:first-child span {{ color:rgba(255,255,255,.85); }}
+.kpi b {{ display:block; font-size:1.7rem; font-weight:800; letter-spacing:-0.02em; }} .kpi span {{ color:var(--muted); font-size:.85rem; }}
 section {{ margin-bottom:12px; overflow-x:auto; }}
 table {{ width:100%; border-collapse:collapse; font-size:.9rem; }}
 th {{ text-align:left; color:var(--muted); font-weight:600; }}

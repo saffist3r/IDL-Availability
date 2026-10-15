@@ -3,32 +3,43 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#0f766e">
+  <meta name="theme-color" content="#1f4fd1">
   <title>Padel IDL – Créneaux libres</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header class="top">
-    <h1>Padel Île de Loisirs</h1>
-    <p class="subtitle">Créneaux de 2 h libres sur les 6 terrains</p>
+    <div class="wrap">
+      <h1><span class="ball" aria-hidden="true"></span>Padel Île de Loisirs</h1>
+      <p class="subtitle">Créneaux de 2 h libres sur les 6 terrains</p>
+    </div>
   </header>
 
-  <nav class="days" id="days" aria-label="Choisir un jour"></nav>
+  <div class="controls">
+    <div class="wrap">
+      <nav class="days" id="days" aria-label="Choisir un jour"></nav>
 
-  <div class="periods" id="periods" role="group" aria-label="Moment de la journée">
-    <button data-period="all" class="active">Tout</button>
-    <button data-period="morning">Matin</button>
-    <button data-period="afternoon">Après-midi</button>
-    <button data-period="evening">Soir</button>
+      <div class="periods" id="periods" role="group" aria-label="Moment de la journée">
+        <button data-period="all" class="active">Tout</button>
+        <button data-period="morning">Matin</button>
+        <button data-period="afternoon">Après-midi</button>
+        <button data-period="evening">Soir</button>
+      </div>
+    </div>
   </div>
 
-  <main id="slots" aria-live="polite"></main>
+  <div class="wrap">
+    <main id="slots" aria-live="polite"></main>
 
-  <footer class="foot">
-    <span id="updated"></span><br>
-    Touchez un terrain pour ouvrir la page du club, puis réservez les 2 heures (le club vend des créneaux d’1 h).
-    <button id="refresh" type="button">Actualiser</button>
-  </footer>
+    <footer class="foot">
+      <span id="updated"></span><br>
+      Touchez un terrain pour ouvrir la page du club, puis réservez les 2 heures (le club vend des créneaux d’1 h).
+      <button id="refresh" type="button">Actualiser</button>
+    </footer>
+  </div>
 
   <script src="app.js"></script>
 </body>

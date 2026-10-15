@@ -149,7 +149,7 @@
       var label = t + 'h – ' + (t + GAME_HOURS) + 'h';
       var weather = weatherHtml(state.day, t);
       return '<section class="hour' + (weather.indexOf(' wet') !== -1 ? ' rainy' : '') + '"><div class="hour-head"><span class="hour-time">' + label + '</span>' +
-        '<span class="hour-count">' + courts.length + (courts.length > 1 ? ' terrains libres' : ' terrain libre') + '</span></div>' +
+        '<span class="hour-count">' + courts.length + (courts.length > 1 ? ' libres' : ' libre') + '</span></div>' +
         weather +
         '<div class="courts">' + courts.map(function (c) {
           return '<a href="' + c.url + '" target="_blank" rel="noopener" data-slot="' + label + '" data-court="' + c.name + '">' + c.name + '</a>';
