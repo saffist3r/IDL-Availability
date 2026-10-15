@@ -8,7 +8,7 @@
     evening: [17, 24],
   };
 
-  var state = { day: null, period: loadPeriod(), data: null };
+  var state = { day: null, period: loadSaved('period', PERIODS, 'all'), duration: Number(loadSaved('duration', { 1: 1, 2: 1 }, '2')), data: null };
   var daysEl = document.getElementById('days');
   var slotsEl = document.getElementById('slots');
   var updatedEl = document.getElementById('updated');
@@ -18,12 +18,16 @@
     return local.toISOString().slice(0, 10);
   }
 
-  function loadPeriod() {
+  function loadSaved(key, allowed, fallback) {
     try {
-      var saved = localStorage.getItem('period');
-      if (saved && PERIODS[saved]) return saved;
+      var saved = localStorage.getItem(key);
+      if (saved && allowed[saved]) return saved;
     } catch (e) {}
-    return 'all';
+    return fallback;
+  }
+
+  function hhmmLabel(hour) {
+    return (hour < 10 ? '0' : '') + hour + ':00';
   }
 
   function bookingUrl(court, day, hhmm) {
@@ -51,11 +55,16 @@
     var byHour = {};
 
     state.data.courts.forEach(function (court) {
-      (dayData[court.id] || []).forEach(function (hhmm) {
+      var free = dayData[court.id] || [];
+      free.forEach(function (hhmm) {
         var hour = parseInt(hhmm.slice(0, 2), 10);
         if (hour < range[0] || hour >= range[1]) return;
         if (isToday && hour <= now.getHours()) return; // already started
-        var label = hhmm.slice(0, 2) + ':' + hhmm.slice(2);
+        // Every following hour must be free on the same court too
+        for (var i = 1; i < state.duration; i++) {
+          if (free.indexOf(hhmmLabel(hour + i).replace(':', '')) === -1) return;
+        }
+        var label = state.duration > 1 ? hhmmLabel(hour) + ' – ' + hhmmLabel(hour + state.duration) : hhmmLabel(hour);
         (byHour[label] = byHour[label] || []).push({ name: court.name, url: bookingUrl(court, state.day, hhmm) });
       });
     });
@@ -129,10 +138,24 @@
     if (state.data) renderSlots();
   });
 
+  document.getElementById('durations').addEventListener('click', function (e) {
+    var btn = e.target.closest('button[data-duration]');
+    if (!btn) return;
+    state.duration = Number(btn.dataset.duration);
+    try { localStorage.setItem('duration', btn.dataset.duration); } catch (err) {}
+    this.querySelectorAll('button').forEach(function (b) {
+      b.classList.toggle('active', b === btn);
+    });
+    if (state.data) renderSlots();
+  });
+
   document.getElementById('refresh').addEventListener('click', load);
 
   document.querySelectorAll('#periods button').forEach(function (b) {
     b.classList.toggle('active', b.dataset.period === state.period);
+  });
+  document.querySelectorAll('#durations button').forEach(function (b) {
+    b.classList.toggle('active', Number(b.dataset.duration) === state.duration);
   });
   load();
 })();
