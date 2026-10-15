@@ -28,8 +28,8 @@
     return fallback;
   }
 
-  function hhmmLabel(hour) {
-    return (hour < 10 ? '0' : '') + hour + ':00';
+  function hhmm(hour) {
+    return (hour < 10 ? '0' : '') + hour + '00';
   }
 
   function bookingUrl(court, day, hhmm) {
@@ -58,27 +58,26 @@
 
     state.data.courts.forEach(function (court) {
       var free = dayData[court.id] || [];
-      free.forEach(function (hhmm) {
-        var hour = parseInt(hhmm.slice(0, 2), 10);
+      free.forEach(function (slot) {
+        var hour = parseInt(slot.slice(0, 2), 10);
         if (hour < range[0] || hour >= range[1]) return;
         if (isToday && hour <= now.getHours()) return; // already started
         // Every following hour must be free on the same court too
         for (var i = 1; i < GAME_HOURS; i++) {
-          if (free.indexOf(hhmmLabel(hour + i).replace(':', '')) === -1) return;
+          if (free.indexOf(hhmm(hour + i)) === -1) return;
         }
-        var label = hhmmLabel(hour) + ' – ' + hhmmLabel(hour + GAME_HOURS);
-        (byHour[label] = byHour[label] || []).push({ name: court.name, url: bookingUrl(court, state.day, hhmm) });
+        (byHour[hour] = byHour[hour] || []).push({ name: court.name, url: bookingUrl(court, state.day, slot) });
       });
     });
 
-    var times = Object.keys(byHour).sort();
+    var times = Object.keys(byHour).map(Number).sort(function (x, y) { return x - y; });
     if (!times.length) {
       slotsEl.innerHTML = '<p class="message">Aucun créneau de 2 h libre sur cette période.</p>';
       return;
     }
     slotsEl.innerHTML = times.map(function (t) {
       var courts = byHour[t];
-      return '<section class="hour"><div class="hour-head"><span class="hour-time">' + t + '</span>' +
+      return '<section class="hour"><div class="hour-head"><span class="hour-time">' + t + 'h – ' + (t + GAME_HOURS) + 'h</span>' +
         '<span class="hour-count">' + courts.length + (courts.length > 1 ? ' terrains libres' : ' terrain libre') + '</span></div>' +
         '<div class="courts">' + courts.map(function (c) {
           return '<a href="' + c.url + '" target="_blank" rel="noopener">' + c.name + '</a>';

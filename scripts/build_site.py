@@ -6,6 +6,7 @@ workflow on a schedule; run it locally the same way to preview.
     python scripts/build_site.py && python -m http.server -d _site 8010
 """
 import json
+import os
 import shutil
 import sys
 from concurrent.futures import ThreadPoolExecutor
@@ -58,6 +59,13 @@ def main() -> int:
     if OUT.exists():
         shutil.rmtree(OUT)
     shutil.copytree(ROOT / "site", OUT)
+    # Version the asset links so phones pick up a new app.js/style.css right away
+    version = os.environ.get("GITHUB_SHA", now.strftime("%Y%m%d%H%M%S"))[:12]
+    index = OUT / "index.html"
+    html = index.read_text()
+    for asset in ("style.css", "app.js"):
+        html = html.replace(f'"{asset}"', f'"{asset}?v={version}"')
+    index.write_text(html)
     (OUT / "data.json").write_text(json.dumps(data, separators=(",", ":")))
     print(f"Wrote {len(jobs) - failures}/{len(jobs)} court-days to {OUT / 'data.json'}")
     return 0
