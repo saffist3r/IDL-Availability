@@ -6,9 +6,10 @@ import urllib.parse
 import urllib.request
 from typing import Dict, List
 
-# Île de Loisirs de Cergy-Pontoise
-LATITUDE = 49.025
-LONGITUDE = 2.045
+# The padel courts at the Île de Loisirs de Cergy-Pontoise, as placed on the
+# club's own activity map ("Padel tennis", cergy-pontoise.iledeloisirs.fr)
+LATITUDE = 49.028824
+LONGITUDE = 2.058013
 FORECAST_URL = "https://api.open-meteo.com/v1/forecast"
 FIELDS = ["temperature_2m", "precipitation_probability", "precipitation", "weather_code", "wind_speed_10m", "is_day"]
 
