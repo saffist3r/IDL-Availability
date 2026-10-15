@@ -17,7 +17,7 @@ from app.club import BASE_URL, COURTS, fetch_court_slots
 
 DAYS_AHEAD = 14
 PARALLEL_REQUESTS = 6
-REFRESH_SECONDS = 15 * 60
+REFRESH_SECONDS = 5 * 60
 NIGHT_REFRESH_SECONDS = 60 * 60
 PARIS = ZoneInfo("Europe/Paris")
 
