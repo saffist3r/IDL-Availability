@@ -9,7 +9,7 @@
   };
 
   var GAME_HOURS = 2; // a game is 2 hours in a row on the same court
-  var STATS_URL = 'https://padel.saffist3r.xyz/api/events';
+  var STATS_URL = '/api/events';
 
   var state = { day: null, period: loadSaved('period', PERIODS, 'all'), data: null };
   var daysEl = document.getElementById('days');

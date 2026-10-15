@@ -1,5 +1,5 @@
 #!/bin/bash
-# Build the stats service inside minikube on the server and deploy it to
+# Build the padel site (page, slot refresher, stats) inside minikube on the server and deploy it to
 # padel.saffist3r.xyz. Uses your SSH key; safe to run again for each update.
 set -euo pipefail
 
@@ -9,10 +9,11 @@ NS=padel-idl
 TAG=$(git -C "$(dirname "$0")" rev-parse --short HEAD 2>/dev/null || date +%s)
 REMOTE_DIR=/tmp/padel-idl-deploy
 
-cd "$(dirname "$0")"
+cd "$(dirname "$0")/.."
 echo "Copying sources (tag $TAG)..."
 ssh "$HOST" "rm -rf $REMOTE_DIR && mkdir -p $REMOTE_DIR"
-tar -czf - Dockerfile requirements.txt app k8s | ssh "$HOST" "tar -xzf - -C $REMOTE_DIR"
+COPYFILE_DISABLE=1 tar --exclude __pycache__ -czf - Dockerfile site server/requirements.txt server/app server/k8s \
+  | ssh "$HOST" "tar -xzf - -C $REMOTE_DIR"
 
 ssh "$HOST" TAG="$TAG" DOMAIN="$DOMAIN" NS="$NS" REMOTE_DIR="$REMOTE_DIR" bash -s <<'EOF'
 set -euo pipefail
@@ -22,7 +23,7 @@ echo "Building image padel-idl:$TAG in minikube..."
 eval "$(minikube -p minikube docker-env)"
 docker build -q -t "padel-idl:$TAG" .
 
-sed "s/IMAGE_TAG/$TAG/" k8s/padel-idl.yaml > /tmp/padel-idl.yaml
+sed "s/IMAGE_TAG/$TAG/g" server/k8s/padel-idl.yaml > /tmp/padel-idl.yaml
 kubectl apply -f /tmp/padel-idl.yaml
 
 if ! kubectl get secret stats-auth -n "$NS" >/dev/null 2>&1; then
@@ -52,5 +53,5 @@ kubectl rollout status deploy/padel-idl -n "$NS" --timeout=120s
 EOF
 
 echo
-echo "Deployed: https://$DOMAIN/stats"
+echo "Deployed: https://$DOMAIN (stats: https://$DOMAIN/admin)"
 echo "Stats password: ssh $HOST \"kubectl get secret stats-auth -n $NS -o jsonpath='{.data.password}' | base64 -d; echo\""

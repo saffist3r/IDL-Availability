@@ -1,10 +1,11 @@
 FROM python:3.12-slim
 
 WORKDIR /srv
-COPY requirements.txt .
+COPY server/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-COPY app ./app
+COPY server/app ./app
+COPY site ./site
 
-ENV DB_PATH=/data/stats.db
+ENV DB_PATH=/data/stats.db SITE_DIR=/srv/site
 EXPOSE 8000
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips", "*"]

@@ -1,4 +1,4 @@
-# Stats service for the padel availability page, served at padel.saffist3r.xyz.
+# Padel availability page + usage stats, served at padel.saffist3r.xyz.
 # The TLS secret comes from certbot on the host (see deploy.sh); the
 # stats-auth secret is created once by deploy.sh with a random password.
 apiVersion: v1
@@ -41,6 +41,8 @@ spec:
           ports:
             - containerPort: 8000
           env:
+            - name: APP_VERSION
+              value: "IMAGE_TAG"
             - name: STATS_PASSWORD
               valueFrom:
                 secretKeyRef:

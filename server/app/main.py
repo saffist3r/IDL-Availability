@@ -1,6 +1,7 @@
 """
-Usage stats for the padel availability page. The page (on GitHub Pages) sends
-small events here; /stats shows them behind a password. No IP addresses or
+Padel availability site for padel.saffist3r.xyz: serves the page (site/), the
+free slots it shows (/data.json, refreshed in the background) and anonymous
+usage stats (/api/events in, /admin out behind a password). No IP addresses or
 cookies are stored: a visitor is a random id the page keeps in localStorage.
 """
 import json
@@ -15,24 +16,26 @@ from typing import Optional
 from zoneinfo import ZoneInfo
 
 from fastapi import Depends, FastAPI, HTTPException, Request, Response
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, ValidationError
+
+from app.availability import Refresher
 
 DB_PATH = Path(os.environ.get("DB_PATH", "data/stats.db"))
 STATS_USER = os.environ.get("STATS_USER", "admin")
 STATS_PASSWORD = os.environ.get("STATS_PASSWORD", "")
-ALLOWED_ORIGINS = os.environ.get(
-    "ALLOWED_ORIGINS", "https://saffist3r.github.io,http://localhost:8010"
-).split(",")
+SITE_DIR = Path(os.environ.get("SITE_DIR", Path(__file__).resolve().parents[2] / "site"))
+APP_VERSION = os.environ.get("APP_VERSION", "dev")
+REFRESH_ENABLED = os.environ.get("REFRESH_ENABLED", "1") == "1"
 EVENT_TYPES = {"view", "day", "period", "slot_click"}
 BOT_RE = re.compile(r"bot|crawl|spider|preview|facebookexternalhit|whatsapp|slurp|curl|python|headless", re.I)
 PARIS = ZoneInfo("Europe/Paris")
 
-app = FastAPI(title="Padel IDL stats", docs_url=None, redoc_url=None)
-app.add_middleware(CORSMiddleware, allow_origins=ALLOWED_ORIGINS, allow_methods=["POST"], allow_headers=["*"])
+app = FastAPI(title="Padel IDL", docs_url=None, redoc_url=None)
 security = HTTPBasic()
+refresher = Refresher(DB_PATH.parent / "data.json")
 
 
 def db() -> sqlite3.Connection:
@@ -56,6 +59,24 @@ def init_db():
             )"""
         )
         conn.execute("CREATE INDEX IF NOT EXISTS events_at ON events(at)")
+    if REFRESH_ENABLED:
+        refresher.start()
+
+
+@app.get("/")
+def index():
+    # Version the asset links so phones pick up a new app.js/style.css right away
+    html = (SITE_DIR / "index.html").read_text()
+    for asset in ("style.css", "app.js"):
+        html = html.replace(f'"{asset}"', f'"{asset}?v={APP_VERSION}"')
+    return HTMLResponse(html, headers={"Cache-Control": "no-cache"})
+
+
+@app.get("/data.json")
+def data():
+    if refresher.data is None:
+        raise HTTPException(status_code=503, detail="Slots are loading, try again in a minute")
+    return Response(refresher.data, media_type="application/json", headers={"Cache-Control": "no-cache"})
 
 
 class Event(BaseModel):
@@ -127,7 +148,12 @@ def _table(title: str, headers, rows, empty="Pas encore de données") -> str:
     return f"<section><h2>{title}</h2><table><thead><tr>{head}</tr></thead><tbody>{body}</tbody></table></section>"
 
 
-@app.get("/stats", response_class=HTMLResponse, dependencies=[Depends(require_admin)])
+@app.get("/stats", include_in_schema=False)
+def old_stats_url():
+    return RedirectResponse("/admin", status_code=301)
+
+
+@app.get("/admin", response_class=HTMLResponse, dependencies=[Depends(require_admin)])
 def stats(days: Optional[int] = 30):
     days = max(1, min(days or 30, 365))
     since = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat(timespec="seconds")
@@ -205,3 +231,7 @@ tr:last-child td {{ border-bottom:none; }} .muted {{ color:var(--muted); }}
 {_table("Filtres utilisés", ["Filtre", "Fois"], periods)}
 {_table("Appareils", ["Appareil", "Visiteurs"], devices)}
 </body></html>"""
+
+
+# Page assets (app.js, style.css); registered last so the routes above win
+app.mount("/", StaticFiles(directory=SITE_DIR), name="site")

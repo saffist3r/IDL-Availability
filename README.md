@@ -2,13 +2,13 @@
 
 A phone-friendly page (in French) showing free 2-hour padel slots — two consecutive free hours on the same court — on the 6 courts of the Île de Loisirs de Cergy-Pontoise, for sharing with friends. Tapping a court opens the club's booking page with that day and hour preselected.
 
-Live at https://saffist3r.github.io/IDL-Availability/
+Live at https://padel.saffist3r.xyz (the old GitHub Pages link redirects there).
 
 ## How it works
 
 The club shop runs WordPress + WooCommerce Appointments. Free slots are public: `admin-ajax.php` with `action=wc_appointments_get_slots` returns the slots for one court on one day. The club site does not allow browsers on other sites to call it, so the page cannot ask it directly.
 
-Instead, a GitHub Actions workflow ([deploy.yml](.github/workflows/deploy.yml)) runs every 15 minutes from about 06:00 to midnight. It fetches the next 14 days for every court, writes `data.json` and publishes the site to GitHub Pages. Slots can therefore be up to ~15–20 minutes old; the club page shows the truth when you tap through.
+A small FastAPI app ([server/app](server/app)) runs on the saffist3r.xyz Kubernetes cluster. In the background it fetches the next 14 days for every court every 15 minutes (hourly at night), keeps the result in memory and on disk, and serves it as `/data.json` along with the page in [site/](site/). Slots can be up to ~15 minutes old; the club page shows the truth when you tap through.
 
 | Product | Product id | Courts (staff ids) |
 |---|---|---|
@@ -17,21 +17,27 @@ Instead, a GitHub Actions workflow ([deploy.yml](.github/workflows/deploy.yml)) 
 
 ## Usage stats
 
-The page sends small anonymous events (page opened, day/filter picked, slot tapped) to a stats service at https://padel.saffist3r.xyz, which keeps them in SQLite. No cookies or IP addresses are stored; a visitor is a random id kept in the phone's localStorage. Nothing is sent when the page runs on localhost.
+The page sends small anonymous events (page opened, day/filter picked, slot tapped) to `/api/events`, stored in SQLite. No cookies or IP addresses are stored; a visitor is a random id kept in the phone's localStorage. Nothing is sent when the page runs on localhost.
 
-- Dashboard: https://padel.saffist3r.xyz/stats (user `admin`, password stored in the `stats-auth` secret; `server/deploy.sh` prints the command to read it)
-- Code: [server/](server/) (FastAPI). Deploy or update with `./server/deploy.sh`: it builds the image inside minikube on the server, applies [server/k8s/padel-idl.yaml](server/k8s/padel-idl.yaml), and on first run gets a Let's Encrypt certificate the same way as the other saffist3r.xyz apps.
+Dashboard: https://padel.saffist3r.xyz/admin (user `admin`, password in the `stats-auth` secret; `server/deploy.sh` prints the command to read it).
 
 ## Run locally
 
-No dependencies beyond Python 3.9+.
-
 ```bash
-python3 scripts/build_site.py
-python3 -m http.server -d _site 8010
+python3 -m venv .venv
+.venv/bin/pip install -r server/requirements.txt
+STATS_PASSWORD=local .venv/bin/uvicorn --app-dir server app.main:app --port 8010 --reload
 ```
 
-Open http://localhost:8010.
+Open http://localhost:8010 (slots appear about 30 seconds after the first start).
+
+## Deploy
+
+```bash
+./server/deploy.sh
+```
+
+It builds the image inside minikube on the server, applies [server/k8s/padel-idl.yaml](server/k8s/padel-idl.yaml), and on first run gets a Let's Encrypt certificate the same way as the other saffist3r.xyz apps.
 
 ## Next: one-tap booking
 

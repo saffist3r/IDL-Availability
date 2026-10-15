@@ -1,10 +1,11 @@
-name: Refresh availability
+name: Publish redirect
 
+# The site now lives at https://padel.saffist3r.xyz (see server/). GitHub Pages
+# only serves a redirect so old links keep working.
 on:
   push:
     branches: [main]
-  schedule:
-    - cron: "*/15 5-22 * * *" # every 15 min, roughly 06:00–midnight Paris time (cron is UTC)
+    paths: [redirect/**, .github/workflows/deploy.yml]
   workflow_dispatch:
 
 permissions:
@@ -24,19 +25,9 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: Fetch slots and build site
-        run: python scripts/build_site.py
-
       - uses: actions/configure-pages@v5
-
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: _site
-
+          path: redirect
       - id: deployment
         uses: actions/deploy-pages@v4
